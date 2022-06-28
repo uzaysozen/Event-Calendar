@@ -6,4 +6,22 @@ class Event{
 
   Event({this.name, this.description, this.endDate});
   Event.withId({this.id, this.name, this.description, this.endDate});
+
+  Map<String, dynamic> toMap() {
+    var map = Map<String, dynamic>();
+    map["name"] = name;
+    map["description"] = description;
+    map["endDate"] = endDate;
+    if (id != null) {
+      map["id"] = id;
+    }
+    return map;
+  }
+
+  Event.fromObject(dynamic o) {
+    this.id = int.tryParse(o["id"]);
+    this.name = o["name"];
+    this.description = o["description"];
+    this.endDate = DateTime.tryParse(o["endDate"]);
+  }
 }
