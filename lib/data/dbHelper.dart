@@ -14,6 +14,7 @@ class DbHelper {
 
   Future<Database?> initDb() async{
     String dbPath = join(await getDatabasesPath(), "countdown.db");
+    //databaseFactory.deleteDatabase(dbPath);
     var countdownDb = await openDatabase(dbPath, version: 1, onCreate: dbCreate);
     return countdownDb;
   }

@@ -65,8 +65,10 @@ class _EventListState extends State {
   void getEvents() async {
     var eventsFuture = dbHelper.getEvents();
     eventsFuture.then((data) {
-      this.events = data;
-      eventCount = data!.length;
+      setState((){
+        this.events = data;
+        eventCount = data!.length;
+      });
     });
   }
 }
