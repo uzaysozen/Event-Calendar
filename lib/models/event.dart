@@ -11,7 +11,7 @@ class Event{
     var map = Map<String, dynamic>();
     map["name"] = name;
     map["description"] = description;
-    map["endDate"] = endDate;
+    map["endDate"] = endDate.toString();
     if (id != null) {
       map["id"] = id;
     }
@@ -19,7 +19,7 @@ class Event{
   }
 
   Event.fromObject(dynamic o) {
-    this.id = int.tryParse(o["id"]);
+    this.id = o["id"];
     this.name = o["name"];
     this.description = o["description"];
     this.endDate = DateTime.tryParse(o["endDate"]);
