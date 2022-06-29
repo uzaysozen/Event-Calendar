@@ -37,21 +37,51 @@ class _EventListState extends State {
     );
   }
 
-  ListView buildEventList() {
-    return ListView.builder(
-        itemCount: eventCount,
-        itemBuilder: (BuildContext context, int position){
-          return Card(
-            color: Colors.cyan,
-            elevation: 2.0,
-            child: ListTile(
-              leading: CircleAvatar(backgroundColor: Colors.black12, child: Text("E"),),
-              title: Text(this.events![position].name!),
-              subtitle: Text(this.events![position].endDate.toString()),
-              onTap: (){goToDetail(this.events![position]);},
-            ),
-          );
-        }
+  Container buildEventList() {
+    return Container(
+      child: ReorderableListView(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        children: <Widget>[
+          for (int index = 0; index < eventCount; index += 1)
+            Card(
+                color: Colors.lightBlueAccent,
+                elevation: 2.0,
+                key: Key('$index'),
+                child: SizedBox(
+                    width: 300,
+                    height: 90,
+                    child: ListTile(
+                      leading: Icon(Icons.event, size: 65,),
+                      trailing: Icon(Icons.sort),
+                      title: Padding(
+                        padding: EdgeInsets.only(top: 10),
+                        child: Text(
+                          this.events![index].name!,
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                        ),
+                      ),
+                      subtitle: Padding(
+                        padding: EdgeInsets.only(top: 10),
+                        child:Text(
+                          "in " + this.events![index].endDate!.difference(DateTime.now()).inDays.toString() + " days",
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      onTap: (){goToDetail(this.events![index]);},
+                    )
+                )
+            )
+        ],
+        onReorder: (int oldIndex, int newIndex) {
+          setState(() {
+            if (oldIndex < newIndex) {
+              newIndex -= 1;
+            }
+            final Event item = this.events!.removeAt(oldIndex);
+            this.events!.insert(newIndex, item);
+          });
+        },
+      ),
     );
   }
 
