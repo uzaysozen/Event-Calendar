@@ -14,7 +14,7 @@ class EventAdd extends StatefulWidget {
 class EventAddState extends State {
   TextEditingController txtName = TextEditingController();
   TextEditingController txtDescription = TextEditingController();
-  DateTime? endDate;
+  DateTime endDate = DateTime.now();
   var dbHelper = DbHelper();
   @override
   Widget build(BuildContext context) {
