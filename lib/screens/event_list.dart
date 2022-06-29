@@ -3,6 +3,7 @@ import 'package:countdown_app/data/dbHelper.dart';
 import 'package:flutter/material.dart';
 
 import 'event_add.dart';
+import 'event_detail.dart';
 
 class EventList extends StatefulWidget {
   @override
@@ -47,6 +48,7 @@ class _EventListState extends State {
               leading: CircleAvatar(backgroundColor: Colors.black12, child: Text("E"),),
               title: Text(this.events![position].name!),
               subtitle: Text(this.events![position].endDate.toString()),
+              onTap: (){goToDetail(this.events![position]);},
             ),
           );
         }
@@ -70,5 +72,14 @@ class _EventListState extends State {
         eventCount = data!.length;
       });
     });
+  }
+
+  void goToDetail(Event event) async {
+    bool? result = await Navigator.push(context, MaterialPageRoute(builder: (context) => EventDetail(event)));
+    if (result != null) {
+      if (result) {
+        getEvents();
+      }
+    }
   }
 }
