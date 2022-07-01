@@ -21,12 +21,14 @@ class _EventDetailState extends State {
   TextEditingController txtName = TextEditingController();
   TextEditingController txtDescription = TextEditingController();
   DateTime endDate = DateTime.now();
+  TimeOfDay time = TimeOfDay(hour: 0, minute: 0);
   var dbHelper = DbHelper();
 
   @override
   void initState() {
     txtName.text = event.name!;
     txtDescription.text = event.description!;
+    endDate = event.endDate!;
     super.initState();
   }
 
@@ -62,7 +64,8 @@ class _EventDetailState extends State {
         children: [
           buildNameField(),
           buildDescriptionField(),
-          buildEndDateField(),
+          buildDateField(),
+          buildTimeField(),
         ],
       ),
     );
@@ -101,17 +104,32 @@ class _EventDetailState extends State {
     );
   }
 
-  buildEndDateField() {
+  buildDateField() {
     return TextButton(
-        onPressed: () {
-          DatePicker.showDatePicker(context,
-              showTitleActions: true,
-              minTime: DateTime.now(),
-              maxTime: DateTime(2099, 1, 1),
-              onChanged: (date) {print('change $date');},
-              onConfirm: (date) {endDate = date;},
-              currentTime: event.endDate, locale: LocaleType.en);},
+        onPressed: () async { endDate = (await showDatePicker(
+            initialEntryMode: DatePickerEntryMode.calendarOnly,
+            initialDate: DateTime.now(),
+            firstDate: DateTime.now(),
+            lastDate: DateTime(2099),
+            context: context,
+          ))!;
+          print(endDate);},
         child: Text('Choose a Date For the Event',)
+    );
+  }
+
+  buildTimeField() {
+    return TextButton(
+        onPressed: () async { time = (await showTimePicker(
+          initialEntryMode: TimePickerEntryMode.dial,
+          context: context,
+          initialTime: TimeOfDay(hour: endDate.hour, minute: endDate.minute),
+        ))!;
+        endDate = DateTime(endDate.year, endDate.month, endDate.day,
+            time.hour, time.minute, endDate.second, endDate.millisecond,
+            endDate.microsecond);
+        print(endDate);},
+        child: Text('Choose a Time For the Event',)
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:countdown_app/models/event.dart';
 import 'package:countdown_app/data/dbHelper.dart';
 import 'package:flutter/material.dart';
@@ -16,10 +18,14 @@ class _EventListState extends State {
   var dbHelper = DbHelper();
   List<Event>? events;
   int eventCount = 0;
+  Timer? timer;
+  Duration duration = Duration(minutes: 10);
 
   @override
   void initState() {
+    super.initState();
     getEvents();
+    startTimer();
   }
 
   @override
@@ -43,7 +49,7 @@ class _EventListState extends State {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         children: <Widget>[
           for (int index = 0; index < eventCount; index += 1)
-            Card(
+              Card(
                 color: Colors.lightBlueAccent,
                 elevation: 2.0,
                 key: Key('$index'),
@@ -63,7 +69,9 @@ class _EventListState extends State {
                       subtitle: Padding(
                         padding: EdgeInsets.only(top: 10),
                         child:Text(
-                          "in " + this.events![index].endDate!.difference(DateTime.now()).inDays.toString() + " days",
+                          getTimeText(this.events![index].
+                            endDate!.difference(DateTime.now()))
+                          ,
                           style: TextStyle(fontSize: 14),
                         ),
                       ),
@@ -110,6 +118,30 @@ class _EventListState extends State {
       if (result) {
         getEvents();
       }
+    }
+  }
+
+  void startTimer() {
+    timer = Timer.periodic(Duration(seconds: 1), (_) => changeTime());
+  }
+
+  changeTime() {
+    final changeSeconds = 1;
+    setState((){
+      final seconds = duration.inSeconds - changeSeconds;
+      duration = Duration(seconds: seconds);
+    });
+  }
+
+  String getTimeText(Duration duration) {
+    if (duration.inSeconds.remainder(60) < 0 ) {
+      return '0 days 0 hours 0 minutes 0 seconds';
+    }
+    else {
+      return '${duration.inDays} days '
+          '${duration.inHours.remainder(24)} hours '
+          '${duration.inMinutes.remainder(60)} minutes '
+          '${duration.inSeconds.remainder(60)} seconds';
     }
   }
 }

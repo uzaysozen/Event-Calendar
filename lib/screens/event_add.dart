@@ -15,6 +15,7 @@ class EventAddState extends State {
   TextEditingController txtName = TextEditingController();
   TextEditingController txtDescription = TextEditingController();
   DateTime endDate = DateTime.now();
+  TimeOfDay time = TimeOfDay(hour: 0, minute: 0);
   var dbHelper = DbHelper();
   @override
   Widget build(BuildContext context) {
@@ -28,7 +29,8 @@ class EventAddState extends State {
           children: [
             buildNameField(),
             buildDescriptionField(),
-            buildEndDateField(),
+            buildDateField(),
+            buildTimeField(),
             buildSaveButton(),
           ],
         ),
@@ -50,17 +52,32 @@ class EventAddState extends State {
     );
   }
 
-  buildEndDateField() {
+  buildDateField() {
     return TextButton(
-        onPressed: () {
-          DatePicker.showDatePicker(context,
-              showTitleActions: true,
-              minTime: DateTime.now(),
-              maxTime: DateTime(2099, 1, 1),
-          onChanged: (date) {print('change $date');},
-          onConfirm: (date) {this.endDate = date;},
-          currentTime: DateTime.now(), locale: LocaleType.en);},
+        onPressed: () async { endDate = (await showDatePicker(
+          initialEntryMode: DatePickerEntryMode.calendarOnly,
+          initialDate: DateTime.now(),
+          firstDate: DateTime.now(),
+          lastDate: DateTime(2099),
+          context: context,
+        ))!;
+        print(endDate);},
         child: Text('Choose a Date For the Event',)
+    );
+  }
+
+  buildTimeField() {
+    return TextButton(
+        onPressed: () async { time = (await showTimePicker(
+          initialEntryMode: TimePickerEntryMode.dial,
+          context: context,
+          initialTime: TimeOfDay(hour: endDate.hour, minute: endDate.minute),
+        ))!;
+        endDate = DateTime(endDate.year, endDate.month, endDate.day,
+            time.hour, time.minute, endDate.second, endDate.millisecond,
+            endDate.microsecond);
+        print(endDate);},
+        child: Text('Choose a Time For the Event',)
     );
   }
 
