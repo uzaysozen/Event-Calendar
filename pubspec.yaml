@@ -31,6 +31,16 @@ dependencies:
   sqflite:
   path:
   flutter_datetime_picker: ^1.5.1
+  flutter_launcher_icons:
+  flutter_app_name: ^0.1.0
+
+flutter_app_name:
+  name: 'Event Calendar'
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: 'assets/icons/icon.png'
 
 dev_dependencies:
   flutter_test:
