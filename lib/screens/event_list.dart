@@ -19,7 +19,7 @@ class _EventListState extends State {
   List<Event>? events;
   int eventCount = 0;
   Timer? timer;
-  Duration duration = Duration(minutes: 10);
+  Duration duration = Duration(seconds: 10);
 
   @override
   void initState() {
@@ -32,10 +32,26 @@ class _EventListState extends State {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Event List"),
+        backgroundColor: Colors.blueAccent,
+        title: Text("Your Events"),
+        actions: [
+          IconButton(
+              onPressed: () async {
+                bool result = await showSearch(
+                    context: context,
+                    delegate: CustomSearchDelegate(),
+                );
+                if (result) {
+                  getEvents();
+                }
+              },
+              icon: Icon(Icons.search)
+          ),
+        ],
       ),
       body: buildEventList(),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.blueAccent,
         onPressed: (){goToEventAdd();},
         child: Icon(Icons.add),
         tooltip: "Add new event",
@@ -45,20 +61,19 @@ class _EventListState extends State {
 
   Container buildEventList() {
     return Container(
-      child: ReorderableListView(
+      child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         children: <Widget>[
           for (int index = 0; index < eventCount; index += 1)
               Card(
-                color: Colors.lightBlueAccent,
+                color: Colors.tealAccent,
                 elevation: 2.0,
-                key: Key('$index'),
+                key: ValueKey(events![index].id),
                 child: SizedBox(
                     width: 300,
                     height: 90,
                     child: ListTile(
-                      leading: Icon(Icons.event, size: 65,),
-                      trailing: Icon(Icons.sort),
+                      leading: Icon(Icons.event, size: 60,),
                       title: Padding(
                         padding: EdgeInsets.only(top: 10),
                         child: Text(
@@ -80,15 +95,6 @@ class _EventListState extends State {
                 )
             )
         ],
-        onReorder: (int oldIndex, int newIndex) {
-          setState(() {
-            if (oldIndex < newIndex) {
-              newIndex -= 1;
-            }
-            final Event item = this.events!.removeAt(oldIndex);
-            this.events!.insert(newIndex, item);
-          });
-        },
       ),
     );
   }
@@ -133,15 +139,159 @@ class _EventListState extends State {
     });
   }
 
-  String getTimeText(Duration duration) {
-    if (duration.inSeconds.remainder(60) < 0 ) {
-      return '0 days 0 hours 0 minutes 0 seconds';
+
+}
+
+String getTimeText(Duration duration) {
+  var result = '';
+  if (duration.inSeconds.remainder(60) < 0 ) {
+    return 'The event is over!';
+  }
+  else {
+    if (duration.inDays != 0) {
+      result += '${duration.inDays} days ';
     }
-    else {
-      return '${duration.inDays} days '
-          '${duration.inHours.remainder(24)} hours '
-          '${duration.inMinutes.remainder(60)} minutes '
-          '${duration.inSeconds.remainder(60)} seconds';
+    if (duration.inHours.remainder(24) != 0) {
+      result += '${duration.inHours.remainder(24)} hours ';
+    }
+    if (duration.inMinutes.remainder(60) != 0) {
+      result += '${duration.inMinutes.remainder(60)} minutes ';
+    }
+    result += '${duration.inSeconds.remainder(60)} seconds';
+    return result;
+  }
+}
+
+
+
+class CustomSearchDelegate extends SearchDelegate {
+  var dbHelper = DbHelper();
+  List<Event>? events = [];
+
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    return [
+      IconButton(
+          onPressed: () {
+            query = '';
+          },
+          icon: Icon(Icons.clear)
+      )
+    ];
+  }
+
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+        onPressed: () {
+          close(context, true);
+        },
+        icon: Icon(Icons.arrow_back)
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    List<Event> matchQuery = [];
+    for (var event in events!) {
+      if (event.name!.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(event);
+      }
+    }
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      children: <Widget>[
+        for (int index = 0; index < matchQuery.length; index += 1)
+          Card(
+              color: Colors.tealAccent,
+              elevation: 2.0,
+              key: ValueKey(matchQuery[index].id),
+              child: SizedBox(
+                  width: 300,
+                  height: 90,
+                  child: ListTile(
+                    leading: Icon(Icons.event, size: 60,),
+                    title: Padding(
+                      padding: EdgeInsets.only(top: 10),
+                      child: Text(
+                        matchQuery[index].name!,
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                      ),
+                    ),
+                    subtitle: Padding(
+                      padding: EdgeInsets.only(top: 10),
+                      child:Text(
+                          getTimeText(matchQuery[index].
+                        endDate!.difference(DateTime.now()))
+                        ,
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ),
+                    onTap: () async {
+                      await goToEvent(context, matchQuery[index]);
+                      },
+                  )
+              )
+          )
+      ],
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    getEvents(context);
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      children: <Widget>[
+        for (int index = 0; index < events!.length; index += 1)
+          Card(
+              color: Colors.tealAccent,
+              elevation: 2.0,
+              key: ValueKey(events![index].id),
+              child: SizedBox(
+                  width: 300,
+                  height: 90,
+                  child: ListTile(
+                    leading: Icon(Icons.event, size: 60,),
+                    title: Padding(
+                      padding: EdgeInsets.only(top: 10),
+                      child: Text(
+                        this.events![index].name!,
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                      ),
+                    ),
+                    subtitle: Padding(
+                      padding: EdgeInsets.only(top: 10),
+                      child:Text(
+                        getTimeText(this.events![index].
+                        endDate!.difference(DateTime.now()))
+                        ,
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ),
+                    onTap: () async {
+                      await goToEvent(context, this.events![index]);
+                      },
+                  )
+              )
+          )
+      ],
+    );
+  }
+
+  getEvents(BuildContext context) {
+    var eventsFuture = dbHelper.getEvents();
+    eventsFuture.then((data) {
+      events = data;
+    });
+  }
+
+  Future<void> goToEvent(BuildContext context, Event event) async {
+    bool result = await Navigator.push(context, MaterialPageRoute(builder: (context) => EventDetail(event)));
+    if (result) {
+      getEvents(context);
     }
   }
+  
 }

@@ -36,6 +36,7 @@ class _EventDetailState extends State {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.blueAccent,
         title: Text("Event Detail: ${event.name}"),
         actions: [
           PopupMenuButton<Options>(
@@ -43,11 +44,17 @@ class _EventDetailState extends State {
               itemBuilder: (BuildContext context) => <PopupMenuEntry<Options>>[
                 PopupMenuItem<Options>(
                   value: Options.delete,
-                  child: Text("Delete"),
+                  child: ListTile(
+                    trailing: Icon(Icons.delete, color: Colors.red,), // your icon
+                    title: Text("Delete", style: TextStyle(color: Colors.red),),
+                  ),
                 ),
                 PopupMenuItem<Options>(
                   value: Options.update,
-                  child: Text("Update"),
+                  child: ListTile(
+                    trailing: Icon(Icons.update, color: Colors.green,), // your icon
+                    title: Text("Update", style: TextStyle(color: Colors.green),),
+                  ),
                 )
               ]
           )
@@ -64,6 +71,7 @@ class _EventDetailState extends State {
         children: [
           buildNameField(),
           buildDescriptionField(),
+          buildEndDateText(),
           buildDateField(),
           buildTimeField(),
         ],
@@ -78,29 +86,77 @@ class _EventDetailState extends State {
         Navigator.pop(context, true);
         break;
       case Options.update:
-        await dbHelper.update(Event.withId(
-            id: event.id!,
-            name: txtName.text,
-            description: txtDescription.text,
-            endDate: endDate
-        ));
-        Navigator.pop(context, true);
+        if (txtName.text.isNotEmpty) {
+          await dbHelper.update(Event.withId(
+              id: event.id!,
+              name: txtName.text,
+              description: txtDescription.text,
+              endDate: endDate,
+          ));
+          Navigator.pop(context, true);
+        }
+        else {
+          showDialog(context: context, builder: (BuildContext context) {
+            return AlertDialog(
+                title: const Text('Oops!'),
+                content: SingleChildScrollView(
+                  child: ListBody(
+                    children: const <Widget>[
+                      Text('Event name must be given.'),
+                    ],
+                  ),
+                )
+            );
+          });
+        }
         break;
       default:
     }
   }
 
   buildNameField() {
-    return TextField(
+    return TextFormField(
       decoration: InputDecoration(labelText: "Event Name"),
       controller: txtName,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter some text';
+        }
+        return null;
+      }
     );
   }
 
   buildDescriptionField() {
-    return TextField(
+    return TextFormField(
       decoration: InputDecoration(labelText: "Event Description"),
       controller: txtDescription,
+      maxLines: 10,
+      minLines: 5,
+    );
+  }
+
+  buildEndDateText() {
+    return Padding(
+        padding: EdgeInsets.all(20.0),
+        child: RichText(
+          text: TextSpan(
+            style: const TextStyle(
+              fontSize: 16.0,
+              color: Colors.black,
+            ),
+            children: <TextSpan>[
+              TextSpan(text: "Event Date: ", style: const TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(text:
+              "${endDate.day < 10 ? '0' + endDate.day.toString() : endDate.day}/"
+                  "${endDate.month < 10 ? '0' + endDate.month.toString() : endDate.month}/"
+                  "${endDate.year} on "
+                  "${endDate.hour < 10 ? '0' + endDate.hour.toString() : endDate.hour}"
+                  ":${endDate.minute < 10 ? '0' + endDate.minute.toString() : endDate.minute}"
+              ),
+            ],
+          ),
+        )
     );
   }
 
