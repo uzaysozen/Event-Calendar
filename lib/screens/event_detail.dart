@@ -1,7 +1,8 @@
 import 'package:countdown_app/data/dbHelper.dart';
 import 'package:countdown_app/models/event.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+
+import '../services/local_notification_service.dart';
 
 class EventDetail extends StatefulWidget {
   Event event;
@@ -24,11 +25,24 @@ class _EventDetailState extends State {
   TimeOfDay time = TimeOfDay(hour: 0, minute: 0);
   var dbHelper = DbHelper();
 
+  String dropdownValue = 'second/s';
+  var items = [
+    'week/s',
+    'day/s',
+    'hour/s',
+    'minute/s',
+    'second/s',
+  ];
+
+  late final LocalNotificationService notificationService;
+
   @override
   void initState() {
     txtName.text = event.name!;
     txtDescription.text = event.description!;
     endDate = event.endDate!;
+    notificationService = LocalNotificationService();
+    notificationService.initialize();
     super.initState();
   }
 
@@ -74,6 +88,7 @@ class _EventDetailState extends State {
           buildEndDateText(),
           buildDateField(),
           buildTimeField(),
+          buildNotifyField()
         ],
       ),
     );
@@ -83,6 +98,7 @@ class _EventDetailState extends State {
     switch(value) {
       case Options.delete:
         await dbHelper.delete(event.id!);
+        await notificationService.cancelNotifications(event.id!);
         Navigator.pop(context, true);
         break;
       case Options.update:
@@ -93,6 +109,13 @@ class _EventDetailState extends State {
               description: txtDescription.text,
               endDate: endDate,
           ));
+          int remainingTime = this.endDate.difference(DateTime.now()).inSeconds;
+          await notificationService.showScheduledNotification(
+              id: event.id!,
+              title: 'Event Calendar',
+              body: 'Your event ${txtName.text} is over!',
+              seconds: remainingTime
+          );
           Navigator.pop(context, true);
         }
         else {
@@ -186,6 +209,32 @@ class _EventDetailState extends State {
             endDate.microsecond);
         print(endDate);},
         child: Text('Choose a Time For the Event',)
+    );
+  }
+
+  buildNotifyField() {
+    return Row(
+      children: [
+        Expanded(child: TextField(
+            decoration: InputDecoration(labelText: "Notify me"),
+            keyboardType: TextInputType.number
+        ),),
+        Expanded(child: DropdownButton(
+          value: dropdownValue,
+          icon: const Icon(Icons.keyboard_arrow_down),
+          items: items.map((String items) {
+            return DropdownMenuItem(
+              value: items,
+              child: Text(items),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            setState(() {
+              dropdownValue = newValue!;
+            });
+          },
+        ))
+      ],
     );
   }
 }

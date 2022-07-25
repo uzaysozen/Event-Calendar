@@ -82,7 +82,7 @@ class _EventListState extends State {
                         ),
                       ),
                       subtitle: Padding(
-                        padding: EdgeInsets.only(top: 10),
+                        padding: EdgeInsets.only(top: 10, right: 40),
                         child:Text(
                           getTimeText(this.events![index].
                             endDate!.difference(DateTime.now()))
@@ -144,20 +144,37 @@ class _EventListState extends State {
 
 String getTimeText(Duration duration) {
   var result = '';
-  if (duration.inSeconds.remainder(60) < 0 ) {
+  if (duration.inSeconds <= 0 ) {
     return 'The event is over!';
   }
   else {
     if (duration.inDays != 0) {
-      result += '${duration.inDays} days ';
+      if (duration.inDays == 1) {
+        result += '${duration.inDays} day ';
+      }
+      else {
+        result += '${duration.inDays} days ';
+      }
     }
     if (duration.inHours.remainder(24) != 0) {
-      result += '${duration.inHours.remainder(24)} hours ';
+      if (duration.inHours.remainder(24) == 1) {
+        result += '${duration.inHours.remainder(24)} hour ';
+      } else {
+        result += '${duration.inHours.remainder(24)} hours ';
+      }
     }
     if (duration.inMinutes.remainder(60) != 0) {
-      result += '${duration.inMinutes.remainder(60)} minutes ';
+      if (duration.inMinutes.remainder(60) == 1) {
+        result += '${duration.inMinutes.remainder(60)} minute ';
+      } else {
+        result += '${duration.inMinutes.remainder(60)} minutes ';
+      }
     }
-    result += '${duration.inSeconds.remainder(60)} seconds';
+    if (duration.inSeconds.remainder(60) == 1) {
+      result += '${duration.inSeconds.remainder(60)} second';
+    } else {
+      result += '${duration.inSeconds.remainder(60)} seconds';
+    }
     return result;
   }
 }

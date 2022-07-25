@@ -1,3 +1,4 @@
+import 'package:countdown_app/services/local_notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:countdown_app/models/event.dart';
@@ -16,8 +17,16 @@ class EventAddState extends State {
   TextEditingController txtDescription = TextEditingController();
   DateTime endDate = DateTime.now();
   TimeOfDay time = TimeOfDay(hour: 0, minute: 0);
+  late final LocalNotificationService notificationService;
 
   var dbHelper = DbHelper();
+
+  @override
+  void initState() {
+    super.initState();
+    notificationService = LocalNotificationService();
+    notificationService.initialize();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -143,11 +152,19 @@ class EventAddState extends State {
   }
 
   void addEvent() async{
-    await dbHelper.insert(Event(
+    int? id = await dbHelper.insert(Event(
         name: txtName.text,
         description: txtDescription.text,
         endDate: this.endDate,
-    )
+      )
+    );
+
+    int remainingTime = this.endDate.difference(DateTime.now()).inSeconds;
+    await notificationService.showScheduledNotification(
+        id: id!,
+        title: 'Event Calendar',
+        body: 'Your event ${txtName.text} is over!',
+        seconds: remainingTime
     );
 
     Navigator.pop(context, true);
