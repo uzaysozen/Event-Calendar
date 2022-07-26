@@ -4,6 +4,7 @@ import 'package:countdown_app/models/event.dart';
 import 'package:countdown_app/data/dbHelper.dart';
 import 'package:flutter/material.dart';
 
+import '../util/tools.dart';
 import 'event_add.dart';
 import 'event_detail.dart';
 
@@ -38,21 +39,22 @@ class _EventListState extends State {
           IconButton(
               onPressed: () async {
                 bool result = await showSearch(
-                    context: context,
-                    delegate: CustomSearchDelegate(),
+                  context: context,
+                  delegate: CustomSearchDelegate(),
                 );
                 if (result) {
                   getEvents();
                 }
               },
-              icon: Icon(Icons.search)
-          ),
+              icon: Icon(Icons.search)),
         ],
       ),
       body: buildEventList(),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blueAccent,
-        onPressed: (){goToEventAdd();},
+        onPressed: () {
+          goToEventAdd();
+        },
         child: Icon(Icons.add),
         tooltip: "Add new event",
       ),
@@ -65,42 +67,15 @@ class _EventListState extends State {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         children: <Widget>[
           for (int index = 0; index < eventCount; index += 1)
-              Card(
-                color: Colors.tealAccent,
-                elevation: 2.0,
-                key: ValueKey(events![index].id),
-                child: SizedBox(
-                    width: 300,
-                    height: 90,
-                    child: ListTile(
-                      leading: Icon(Icons.event, size: 60,),
-                      title: Padding(
-                        padding: EdgeInsets.only(top: 10),
-                        child: Text(
-                          this.events![index].name!,
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                        ),
-                      ),
-                      subtitle: Padding(
-                        padding: EdgeInsets.only(top: 10, right: 40),
-                        child:Text(
-                          getTimeText(this.events![index].
-                            endDate!.difference(DateTime.now()))
-                          ,
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      ),
-                      onTap: (){goToDetail(this.events![index]);},
-                    )
-                )
-            )
+            buildCard(context, index, events!, goToDetail)
         ],
       ),
     );
   }
 
-  void goToEventAdd() async{
-    var result = await Navigator.push(context, MaterialPageRoute(builder: (context)=>EventAdd()));
+  void goToEventAdd() async {
+    var result = await Navigator.push(
+        context, MaterialPageRoute(builder: (context) => EventAdd()));
     if (result != null) {
       if (result) {
         getEvents();
@@ -111,15 +86,16 @@ class _EventListState extends State {
   void getEvents() async {
     var eventsFuture = dbHelper.getEvents();
     eventsFuture.then((data) {
-      setState((){
-        this.events = data;
-        eventCount = data!.length;
+      setState(() {
+        this.events = data!.reversed.toList();
+        eventCount = data.length;
       });
     });
   }
 
-  void goToDetail(Event event) async {
-    bool? result = await Navigator.push(context, MaterialPageRoute(builder: (context) => EventDetail(event)));
+  void goToDetail(BuildContext context, Event event) async {
+    bool? result = await Navigator.push(
+        context, MaterialPageRoute(builder: (context) => EventDetail(event)));
     if (result != null) {
       if (result) {
         getEvents();
@@ -133,26 +109,64 @@ class _EventListState extends State {
 
   changeTime() {
     final changeSeconds = 1;
-    setState((){
+    setState(() {
       final seconds = duration.inSeconds - changeSeconds;
       duration = Duration(seconds: seconds);
     });
   }
+}
 
-
+buildCard(BuildContext context, int index, List<Event> events, Function goToEvent) {
+  return Card(
+      color: events[index].endDate!.compareTo(DateTime.now()) <= 0
+          ? Colors.red
+          : Colors.tealAccent,
+      clipBehavior: Clip.antiAlias,
+      elevation: 2.0,
+      key: ValueKey(events[index].id),
+      child: SizedBox(
+          width: 300,
+          height: 100,
+          child: ListTile(
+            leading: Icon(
+              Tools.getIconData(events[index].type!),
+              size: 80,
+            ),
+            title: Padding(
+              padding: EdgeInsets.only(top: 10, right: 50),
+              child: Text(
+                events[index].name!,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 20),
+              ),
+            ),
+            subtitle: Padding(
+              padding: EdgeInsets.only(top: 10, right: 50),
+              child: Text(
+                getTimeText(events[index]
+                    .endDate!
+                    .difference(DateTime.now())),
+                style: TextStyle(fontSize: 14),
+              ),
+            ),
+            onTap: () async {
+              goToEvent(context, events[index]);
+            },
+          )
+      )
+  );
 }
 
 String getTimeText(Duration duration) {
   var result = '';
-  if (duration.inSeconds <= 0 ) {
+  if (duration.inSeconds <= 0) {
     return 'The event is over!';
-  }
-  else {
+  } else {
     if (duration.inDays != 0) {
       if (duration.inDays == 1) {
         result += '${duration.inDays} day ';
-      }
-      else {
+      } else {
         result += '${duration.inDays} days ';
       }
     }
@@ -179,8 +193,6 @@ String getTimeText(Duration duration) {
   }
 }
 
-
-
 class CustomSearchDelegate extends SearchDelegate {
   var dbHelper = DbHelper();
   List<Event>? events = [];
@@ -192,8 +204,7 @@ class CustomSearchDelegate extends SearchDelegate {
           onPressed: () {
             query = '';
           },
-          icon: Icon(Icons.clear)
-      )
+          icon: Icon(Icons.clear))
     ];
   }
 
@@ -203,8 +214,7 @@ class CustomSearchDelegate extends SearchDelegate {
         onPressed: () {
           close(context, true);
         },
-        icon: Icon(Icons.arrow_back)
-    );
+        icon: Icon(Icons.arrow_back));
   }
 
   @override
@@ -219,37 +229,7 @@ class CustomSearchDelegate extends SearchDelegate {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       children: <Widget>[
         for (int index = 0; index < matchQuery.length; index += 1)
-          Card(
-              color: Colors.tealAccent,
-              elevation: 2.0,
-              key: ValueKey(matchQuery[index].id),
-              child: SizedBox(
-                  width: 300,
-                  height: 90,
-                  child: ListTile(
-                    leading: Icon(Icons.event, size: 60,),
-                    title: Padding(
-                      padding: EdgeInsets.only(top: 10),
-                      child: Text(
-                        matchQuery[index].name!,
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                      ),
-                    ),
-                    subtitle: Padding(
-                      padding: EdgeInsets.only(top: 10),
-                      child:Text(
-                          getTimeText(matchQuery[index].
-                        endDate!.difference(DateTime.now()))
-                        ,
-                        style: TextStyle(fontSize: 14),
-                      ),
-                    ),
-                    onTap: () async {
-                      await goToEvent(context, matchQuery[index]);
-                      },
-                  )
-              )
-          )
+          buildCard(context, index, matchQuery, goToEvent)
       ],
     );
   }
@@ -262,37 +242,7 @@ class CustomSearchDelegate extends SearchDelegate {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       children: <Widget>[
         for (int index = 0; index < events!.length; index += 1)
-          Card(
-              color: Colors.tealAccent,
-              elevation: 2.0,
-              key: ValueKey(events![index].id),
-              child: SizedBox(
-                  width: 300,
-                  height: 90,
-                  child: ListTile(
-                    leading: Icon(Icons.event, size: 60,),
-                    title: Padding(
-                      padding: EdgeInsets.only(top: 10),
-                      child: Text(
-                        this.events![index].name!,
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                      ),
-                    ),
-                    subtitle: Padding(
-                      padding: EdgeInsets.only(top: 10),
-                      child:Text(
-                        getTimeText(this.events![index].
-                        endDate!.difference(DateTime.now()))
-                        ,
-                        style: TextStyle(fontSize: 14),
-                      ),
-                    ),
-                    onTap: () async {
-                      await goToEvent(context, this.events![index]);
-                      },
-                  )
-              )
-          )
+          buildCard(context, index, events!, goToEvent)
       ],
     );
   }
@@ -305,10 +255,10 @@ class CustomSearchDelegate extends SearchDelegate {
   }
 
   Future<void> goToEvent(BuildContext context, Event event) async {
-    bool result = await Navigator.push(context, MaterialPageRoute(builder: (context) => EventDetail(event)));
+    bool result = await Navigator.push(
+        context, MaterialPageRoute(builder: (context) => EventDetail(event)));
     if (result) {
       getEvents(context);
     }
   }
-  
 }

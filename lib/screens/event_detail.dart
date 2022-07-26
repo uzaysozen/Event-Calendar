@@ -3,6 +3,7 @@ import 'package:countdown_app/models/event.dart';
 import 'package:flutter/material.dart';
 
 import '../services/local_notification_service.dart';
+import '../util/tools.dart';
 
 class EventDetail extends StatefulWidget {
   Event event;
@@ -25,13 +26,16 @@ class _EventDetailState extends State {
   TimeOfDay time = TimeOfDay(hour: 0, minute: 0);
   var dbHelper = DbHelper();
 
-  String dropdownValue = 'second/s';
+  String typeValue = "Event";
   var items = [
-    'week/s',
-    'day/s',
-    'hour/s',
-    'minute/s',
-    'second/s',
+    'Event',
+    'Birthday',
+    'Exam',
+    'Conference',
+    'Party',
+    'Lecture',
+    'Flight',
+    'Bus'
   ];
 
   late final LocalNotificationService notificationService;
@@ -43,38 +47,19 @@ class _EventDetailState extends State {
     endDate = event.endDate!;
     notificationService = LocalNotificationService();
     notificationService.initialize();
+    typeValue = event.type!;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: Colors.blueAccent,
         title: Text("Event Detail: ${event.name}"),
-        actions: [
-          PopupMenuButton<Options>(
-              onSelected: selectProcess,
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<Options>>[
-                PopupMenuItem<Options>(
-                  value: Options.delete,
-                  child: ListTile(
-                    trailing: Icon(Icons.delete, color: Colors.red,), // your icon
-                    title: Text("Delete", style: TextStyle(color: Colors.red),),
-                  ),
-                ),
-                PopupMenuItem<Options>(
-                  value: Options.update,
-                  child: ListTile(
-                    trailing: Icon(Icons.update, color: Colors.green,), // your icon
-                    title: Text("Update", style: TextStyle(color: Colors.green),),
-                  ),
-                )
-              ]
-          )
-        ],
       ),
-      body: buildEventDetail(),
+      body: SingleChildScrollView(child: buildEventDetail(), reverse: true,),
     );
   }
 
@@ -83,70 +68,52 @@ class _EventDetailState extends State {
       padding: EdgeInsets.all(30.0),
       child: Column(
         children: [
+          buildTypeField(),
           buildNameField(),
           buildDescriptionField(),
           buildEndDateText(),
           buildDateField(),
           buildTimeField(),
-          buildNotifyField()
+          buildButtons(),
+          Padding(
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom
+            ),
+          )
         ],
       ),
     );
   }
 
-  void selectProcess(Options value) async{
-    switch(value) {
-      case Options.delete:
-        await dbHelper.delete(event.id!);
-        await notificationService.cancelNotifications(event.id!);
-        Navigator.pop(context, true);
-        break;
-      case Options.update:
-        if (txtName.text.isNotEmpty) {
-          await dbHelper.update(Event.withId(
-              id: event.id!,
-              name: txtName.text,
-              description: txtDescription.text,
-              endDate: endDate,
-          ));
-          int remainingTime = this.endDate.difference(DateTime.now()).inSeconds;
-          await notificationService.showScheduledNotification(
-              id: event.id!,
-              title: 'Event Calendar',
-              body: 'Your event ${txtName.text} is over!',
-              seconds: remainingTime
-          );
-          Navigator.pop(context, true);
-        }
-        else {
-          showDialog(context: context, builder: (BuildContext context) {
-            return AlertDialog(
-                title: const Text('Oops!'),
-                content: SingleChildScrollView(
-                  child: ListBody(
-                    children: const <Widget>[
-                      Text('Event name must be given.'),
-                    ],
-                  ),
-                )
+  buildTypeField() {
+    return Row(
+      children: [
+        Expanded(child:
+        Text("Event Type: ")
+        ),
+        Expanded(child: DropdownButton(
+          value: typeValue,
+          icon: const Icon(Icons.keyboard_arrow_down),
+          items: items.map((String item) {
+            return DropdownMenuItem(
+              value: item,
+              child: Text(item),
             );
-          });
-        }
-        break;
-      default:
-    }
+          }).toList(),
+          onChanged: (String? newValue) {
+            setState(() {
+              typeValue = newValue!;
+            });
+          },
+        ))
+      ],
+    );
   }
 
   buildNameField() {
-    return TextFormField(
+    return TextField(
       decoration: InputDecoration(labelText: "Event Name"),
       controller: txtName,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter some text';
-        }
-        return null;
-      }
     );
   }
 
@@ -202,7 +169,7 @@ class _EventDetailState extends State {
         onPressed: () async { time = (await showTimePicker(
           initialEntryMode: TimePickerEntryMode.dial,
           context: context,
-          initialTime: TimeOfDay(hour: endDate.hour, minute: endDate.minute),
+          initialTime: TimeOfDay(hour: DateTime.now().hour, minute: DateTime.now().minute),
         ))!;
         endDate = DateTime(endDate.year, endDate.month, endDate.day,
             time.hour, time.minute, endDate.second, endDate.millisecond,
@@ -212,28 +179,80 @@ class _EventDetailState extends State {
     );
   }
 
-  buildNotifyField() {
+  buildButtons() {
     return Row(
       children: [
-        Expanded(child: TextField(
-            decoration: InputDecoration(labelText: "Notify me"),
-            keyboardType: TextInputType.number
-        ),),
-        Expanded(child: DropdownButton(
-          value: dropdownValue,
-          icon: const Icon(Icons.keyboard_arrow_down),
-          items: items.map((String items) {
-            return DropdownMenuItem(
-              value: items,
-              child: Text(items),
-            );
-          }).toList(),
-          onChanged: (String? newValue) {
-            setState(() {
-              dropdownValue = newValue!;
-            });
-          },
-        ))
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.all(15),
+            child: ElevatedButton(
+                onPressed: () async {
+                  await dbHelper.delete(event.id!);
+                  await notificationService.cancelNotifications(event.id!);
+                  Navigator.pop(context, true);
+                },
+                style: ElevatedButton.styleFrom(primary: Colors.red,),
+                child: RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                          text: "Delete ",
+                          style: TextStyle(fontSize: 16)
+                      ),
+                      WidgetSpan(
+                        child: Icon(Icons.delete, size: 16),
+                      ),
+                    ],
+                  ),
+                )
+            ),
+          ),
+        ),
+        Expanded(
+            child: Padding(
+              padding: EdgeInsets.all(15),
+              child: ElevatedButton(
+                onPressed: () async {
+                  if (!txtName.text.isNotEmpty) {
+                    Tools.alertUser(context, "Event name must be given.");
+                  } else if (endDate.compareTo(DateTime.now()) <= 0) {
+                    Tools.alertUser(context, "Event date must be a future date.");
+                  }
+                  else {
+                    await dbHelper.update(Event.withId(
+                      id: event.id!,
+                      type: typeValue,
+                      name: txtName.text,
+                      description: txtDescription.text,
+                      endDate: endDate,
+                    ));
+                    int remainingTime = this.endDate.difference(DateTime.now()).inSeconds;
+                    await notificationService.showScheduledNotification(
+                        id: event.id!,
+                        title: 'Event Calendar',
+                        body: 'Your event ${txtName.text} is over!',
+                        seconds: remainingTime
+                    );
+                    Navigator.pop(context, true);
+                  }
+                },
+                style: ElevatedButton.styleFrom(primary: Colors.green),
+                child: RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "Update ",
+                        style: TextStyle(fontSize: 16)
+                      ),
+                      WidgetSpan(
+                        child: Icon(Icons.update, size: 16),
+                      ),
+                    ],
+                  ),
+                )
+            ),
+          )
+        )
       ],
     );
   }

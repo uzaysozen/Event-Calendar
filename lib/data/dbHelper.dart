@@ -20,7 +20,7 @@ class DbHelper {
   }
 
   void dbCreate(Database db, int version) async{
-    await db.execute("Create table events(id integer primary key, name text, description text, endDate date)");
+    await db.execute("Create table events(id integer primary key, type text, name text, description text, endDate date)");
   }
 
   Future<List<Event>?> getEvents() async {

@@ -1,9 +1,9 @@
 import 'package:countdown_app/services/local_notification_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:countdown_app/models/event.dart';
 
 import '../data/dbHelper.dart';
+import '../util/tools.dart';
 
 class EventAdd extends StatefulWidget {
   @override
@@ -19,6 +19,18 @@ class EventAddState extends State {
   TimeOfDay time = TimeOfDay(hour: 0, minute: 0);
   late final LocalNotificationService notificationService;
 
+  String typeValue = "Event";
+  var items = [
+    'Event',
+    'Birthday',
+    'Exam',
+    'Conference',
+    'Party',
+    'Lecture',
+    'Flight',
+    'Bus'
+  ];
+
   var dbHelper = DbHelper();
 
   @override
@@ -31,23 +43,58 @@ class EventAddState extends State {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: Colors.blueAccent,
-        title: Text("Add New Event"),
+        title: Text("Create New Event"),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(30.0),
-        child: Column(
-          children: [
-            buildNameField(),
-            buildDescriptionField(),
-            buildEndDateText(),
-            buildDateField(),
-            buildTimeField(),
-            buildSaveButton(),
-          ],
+      body: SingleChildScrollView(
+        reverse: true,
+        child: Padding(
+          padding: EdgeInsets.all(30.0),
+          child: Column(
+            children: [
+              buildTypeField(),
+              buildNameField(),
+              buildDescriptionField(),
+              buildEndDateText(),
+              buildDateField(),
+              buildTimeField(),
+              buildSaveButton(),
+              Padding(
+                padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom
+                ),
+              )
+            ],
+          ),
         ),
-      ),
+      )
+    );
+  }
+
+  buildTypeField() {
+    return Row(
+      children: [
+        Expanded(child:
+          Text("Event Type: ")
+        ),
+        Expanded(child: DropdownButton(
+          value: typeValue,
+          icon: const Icon(Icons.keyboard_arrow_down),
+          items: items.map((String item) {
+            return DropdownMenuItem(
+              value: item,
+              child: Text(item),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            setState(() {
+              typeValue = newValue!;
+            });
+          },
+        ))
+      ],
     );
   }
 
@@ -89,7 +136,7 @@ class EventAddState extends State {
         onPressed: () async { time = (await showTimePicker(
           initialEntryMode: TimePickerEntryMode.dial,
           context: context,
-          initialTime: TimeOfDay(hour: endDate.hour, minute: endDate.minute),
+          initialTime: TimeOfDay(hour: DateTime.now().hour, minute: DateTime.now().minute),
         ))!;
         endDate = DateTime(endDate.year, endDate.month, endDate.day,
             time.hour, time.minute, endDate.second, endDate.millisecond,
@@ -105,22 +152,14 @@ class EventAddState extends State {
   buildSaveButton() {
     return ElevatedButton(
         onPressed: (){
-          if (txtName.text.isNotEmpty) {
-            addEvent();
+          if (!txtName.text.isNotEmpty) {
+            Tools.alertUser(context, "Event name must be given.");
+          }
+          else if (endDate.compareTo(DateTime.now()) <= 0) {
+            Tools.alertUser(context, "Event date must be a future date.");
           }
           else {
-            showDialog(context: context, builder: (BuildContext context) {
-              return AlertDialog(
-                  title: const Text('Oops!'),
-                  content: SingleChildScrollView(
-                  child: ListBody(
-                    children: const <Widget>[
-                      Text('Event name must be given.'),
-                    ],
-                  ),
-                )
-              );
-            });
+            addEvent();
           }
         },
         child: Text("Create Event")
@@ -153,6 +192,7 @@ class EventAddState extends State {
 
   void addEvent() async{
     int? id = await dbHelper.insert(Event(
+        type: typeValue,
         name: txtName.text,
         description: txtDescription.text,
         endDate: this.endDate,
