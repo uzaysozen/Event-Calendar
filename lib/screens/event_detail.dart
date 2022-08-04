@@ -236,7 +236,7 @@ class _EventDetailState extends State {
             child: ElevatedButton(
                 key: Key("Notification Button"),
                 onPressed: () async {
-                  showPickerNumber(context);
+                  showNotificationPicker(context);
                 },
                 style: ElevatedButton.styleFrom(primary: Colors.blueGrey,),
                 child: RichText(
