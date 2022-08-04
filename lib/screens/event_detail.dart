@@ -182,7 +182,7 @@ class _EventDetailState extends State {
     );
   }
 
-  showPickerNumber(BuildContext context) {
+  showNotificationPicker(BuildContext context) {
     List<PickerItem> dayList = Tools.getRemainingTimeAsPickerList(event, "days");
     List<PickerItem> hourList = Tools.getRemainingTimeAsPickerList(event, "hours");
     List<PickerItem> minuteList = Tools.getRemainingTimeAsPickerList(event, "minutes");
