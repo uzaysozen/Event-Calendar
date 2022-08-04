@@ -36,6 +36,8 @@ dependencies:
   flutter_local_notifications: ^9.6.1
   timezone: ^0.8.0
   rxdart: ^0.27.4
+  flutter_picker:
+    git: git@github.com:yangyxd/flutter_picker.git
 
 flutter_app_name:
   name: 'Event Calendar'
@@ -46,6 +48,8 @@ flutter_icons:
   image_path: 'assets/icons/icon.png'
 
 dev_dependencies:
+  integration_test:
+    sdk: flutter
   flutter_test:
     sdk: flutter
 

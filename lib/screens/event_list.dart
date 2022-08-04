@@ -30,6 +30,12 @@ class _EventListState extends State {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    stopTimer();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -105,6 +111,10 @@ class _EventListState extends State {
 
   void startTimer() {
     timer = Timer.periodic(Duration(seconds: 1), (_) => changeTime());
+  }
+
+  void stopTimer() {
+    timer?.cancel();
   }
 
   changeTime() {

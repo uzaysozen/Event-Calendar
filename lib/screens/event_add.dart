@@ -102,6 +102,7 @@ class EventAddState extends State {
     return TextField(
       decoration: InputDecoration(labelText: "Event Name"),
       controller: txtName,
+      key: Key("Event Add Name Field")
     );
   }
 
@@ -111,6 +112,7 @@ class EventAddState extends State {
       controller: txtDescription,
       maxLines: 10,
       minLines: 5,
+      key: Key("Event Add Description Field")
     );
   }
 
@@ -162,6 +164,7 @@ class EventAddState extends State {
             addEvent();
           }
         },
+        key: Key("Event Add Save Button"),
         child: Text("Create Event")
     );
   }
