@@ -12,8 +12,9 @@ class MyApp extends StatelessWidget{
   Widget build(BuildContext context) {
     return MaterialApp(
       home: AnimatedSplashScreen(
-          duration: 2000,
-          splash: Icon(Icons.calendar_month_outlined, color: Colors.white, size: 140,),
+          duration: 1000,
+          splash: 'assets/icons/splash_icon.png',
+          splashIconSize: 180,
           nextScreen: EventList(),
           splashTransition: SplashTransition.fadeTransition,
           pageTransitionType: PageTransitionType.fade,

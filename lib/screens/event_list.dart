@@ -55,7 +55,24 @@ class _EventListState extends State {
               icon: Icon(Icons.search)),
         ],
       ),
-      body: buildEventList(),
+      body: eventCount > 0 ? buildEventList() : Center(child: RichText(text: TextSpan(
+            children: [
+              TextSpan(
+                  text: "Tap to ",
+                  style: TextStyle(fontSize: 18, color: Colors.blueGrey)
+              ),
+              WidgetSpan(
+                child: Icon(Icons.add, size: 22, color: Colors.black,),
+              ),
+              TextSpan(
+                  text: " icon to create a new event",
+                  style: TextStyle(fontSize: 18, color: Colors.blueGrey)
+              ),
+            ],
+          ),
+        )
+      ),
+
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blueAccent,
         onPressed: () {
