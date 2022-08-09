@@ -165,7 +165,7 @@ buildCard(BuildContext context, int index, List<Event> events, Function goToEven
                 events[index].name!,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 20),
+                    fontWeight: FontWeight.bold, fontSize: 17),
               ),
             ),
             subtitle: Padding(
