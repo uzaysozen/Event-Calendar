@@ -34,7 +34,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.example.countdown_app"
+        applicationId "com.uzaysozen.eventCalendar"
         minSdkVersion 16
         targetSdkVersion 31
         versionCode flutterVersionCode.toInteger()
