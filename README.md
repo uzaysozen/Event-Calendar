@@ -4,7 +4,7 @@
 
 A simple app used to track important events. The timer for each event starts when the event is created. Users can create, edit and delete events. If an event is over user is notified and event card becomes red. Users can choose when to be notified prior to the event. Users can search and access their events via the search bar.
 
-| Splash screen | Home Screen | Home Screen with Events |
+| Splash Screen | Home Screen | Home Screen with Events |
 |     :---:    |     :---:      |     :---:     |
 | <img src="screenshots/splash_screen.jpg" alt="Splash screen" height="545" width="270"/>   | <img src="screenshots/main_screen.jpg" alt="Main screen" height="545" width="270"/>     | <img src="screenshots/main_screen2.jpg" alt="Main screen with widgets" height="545" width="270"/>    |
 | Event Add Screen | Event Detail Screen | Notify Dialog |
