@@ -18,7 +18,7 @@ class EventList extends StatefulWidget {
 class _EventListState extends State {
   var dbHelper = DbHelper();
   List<Event>? events;
-  int eventCount = 0;
+  int? eventCount;
   Timer? timer;
   Duration duration = Duration(seconds: 10);
 
@@ -55,23 +55,7 @@ class _EventListState extends State {
               icon: Icon(Icons.search)),
         ],
       ),
-      body: eventCount > 0 ? buildEventList() : Center(child: RichText(text: TextSpan(
-            children: [
-              TextSpan(
-                  text: "Tap to ",
-                  style: TextStyle(fontSize: 18, color: Colors.blueGrey)
-              ),
-              WidgetSpan(
-                child: Icon(Icons.add, size: 22, color: Colors.black,),
-              ),
-              TextSpan(
-                  text: " icon to create a new event",
-                  style: TextStyle(fontSize: 18, color: Colors.blueGrey)
-              ),
-            ],
-          ),
-        )
-      ),
+      body: getHomePageBody(),
 
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blueAccent,
@@ -84,12 +68,44 @@ class _EventListState extends State {
     );
   }
 
+  Widget getHomePageBody() {
+    if (eventCount == null) {
+      return Center(child: CircularProgressIndicator(),);
+    }
+    else if (eventCount == 0) {
+      return buildPlaceholder();
+    }
+    else {
+      return buildEventList();
+    }
+  }
+
+  Widget buildPlaceholder() {
+    return Center(child: RichText(text: TextSpan(
+      children: [
+        TextSpan(
+            text: "Tap to ",
+            style: TextStyle(fontSize: 18, color: Colors.blueGrey)
+        ),
+        WidgetSpan(
+          child: Icon(Icons.add, size: 22, color: Colors.black,),
+        ),
+        TextSpan(
+            text: " icon to create a new event",
+            style: TextStyle(fontSize: 18, color: Colors.blueGrey)
+        ),
+      ],
+    ),
+    )
+    );
+  }
+
   Container buildEventList() {
     return Container(
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         children: <Widget>[
-          for (int index = 0; index < eventCount; index += 1)
+          for (int index = 0; index < eventCount!; index += 1)
             buildCard(context, index, events!, goToDetail)
         ],
       ),
